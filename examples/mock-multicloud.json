@@ -1,0 +1,83 @@
+{
+  "generatedAt": "2026-05-02T00:00:00Z",
+  "resources": [
+    {
+      "id": "aws_instance.api",
+      "name": "api-01",
+      "type": "aws_instance",
+      "provider": "AWS",
+      "status": "running",
+      "region": "us-east-1",
+      "environment": "prod",
+      "owner": "payments",
+      "criticality": "high",
+      "instanceClass": "t2.micro",
+      "monthlyCost": 8
+    },
+    {
+      "id": "aws_subnet.public_a",
+      "name": "public-a",
+      "type": "aws_subnet",
+      "provider": "AWS",
+      "status": "available",
+      "region": "us-east-1a",
+      "environment": "prod",
+      "owner": "network",
+      "criticality": "medium",
+      "monthlyCost": 0
+    },
+    {
+      "id": "aws_vpc.prod",
+      "name": "prod-vpc",
+      "type": "aws_vpc",
+      "provider": "AWS",
+      "status": "available",
+      "region": "us-east-1",
+      "environment": "prod",
+      "owner": "platform",
+      "criticality": "high",
+      "monthlyCost": 0
+    },
+    {
+      "id": "google_compute_instance.worker",
+      "name": "worker-a",
+      "type": "google_compute_instance",
+      "provider": "GCP",
+      "status": "running",
+      "region": "us-central1-a",
+      "environment": "prod",
+      "owner": "data",
+      "criticality": "medium",
+      "instanceClass": "e2-micro",
+      "monthlyCost": 6
+    },
+    {
+      "id": "azurerm_linux_virtual_machine.jump",
+      "name": "jumpbox",
+      "type": "azurerm_linux_virtual_machine",
+      "provider": "Azure",
+      "status": "running",
+      "region": "eastus",
+      "environment": "ops",
+      "owner": "security",
+      "criticality": "medium",
+      "instanceClass": "B1s",
+      "monthlyCost": 7
+    }
+  ],
+  "edges": [
+    { "from": "aws_instance.api", "to": "aws_subnet.public_a", "label": "attached to" },
+    { "from": "aws_subnet.public_a", "to": "aws_vpc.prod", "label": "inside" },
+    { "from": "google_compute_instance.worker", "to": "aws_instance.api", "label": "calls" },
+    { "from": "azurerm_linux_virtual_machine.jump", "to": "aws_vpc.prod", "label": "vpn route" }
+  ],
+  "findings": [
+    {
+      "id": "demo-001",
+      "severity": "high",
+      "resourceId": "aws_instance.api",
+      "title": "Public edge dependency",
+      "detail": "Review ingress and subnet routing for production compute."
+    }
+  ]
+}

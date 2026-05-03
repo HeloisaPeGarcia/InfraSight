@@ -1,0 +1,1642 @@
+.appFrame {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.theme-dark {
+  --surface: #111827;
+  --border: #273244;
+  --text: #d1d5db;
+  --text-muted: #9ca3af;
+  --text-strong: #f9fafb;
+  background: #0b1120;
+}
+
+.theme-dark .content,
+.theme-dark .panel,
+.theme-dark .metric,
+.theme-dark .controlStrip {
+  background-color: #0b1120;
+}
+
+.theme-dark .panel,
+.theme-dark .metric,
+.theme-dark .controlStrip,
+.theme-dark .topologyViewport {
+  background: #111827;
+}
+
+.sidebar {
+  background: #111827;
+  color: #d1d5db;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  overflow: hidden;
+  padding: 24px;
+  position: relative;
+}
+
+.sidebar::before {
+  background: linear-gradient(180deg, rgba(31, 157, 138, 0.24), transparent 42%);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.brandMark {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.brandMark > span {
+  align-items: center;
+  background: #1f9d8a;
+  border-radius: 8px;
+  color: #fff;
+  display: inline-flex;
+  font-weight: 900;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+  box-shadow: 0 12px 24px rgba(31, 157, 138, 0.28);
+}
+
+.brandMark strong,
+.sourcePanel strong {
+  color: #fff;
+  display: block;
+}
+
+.brandMark small,
+.sourcePanel small {
+  color: #9ca3af;
+}
+
+.sidebar nav {
+  display: grid;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar nav button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: #d1d5db;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: 10px;
+  padding: 10px;
+  text-align: left;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.sidebar nav button span {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: #9ca3af;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 800;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.sidebar nav button.active,
+.sidebar nav button:hover {
+  background: #1f2937;
+  color: #fff;
+  transform: translateX(3px);
+}
+
+.sourcePanel {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+  padding: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.fileButton {
+  background: #f9fafb;
+  border-radius: 6px;
+  color: #111827;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 9px 10px;
+  text-align: center;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.fileButton:hover {
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+  transform: translateY(-1px);
+}
+
+.fileButton input {
+  display: none;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+  padding: 28px;
+  animation: contentIn 420ms ease both;
+}
+
+.topbar,
+.headerActions,
+.controlStrip,
+.panelHeader,
+.spendBar > div,
+.compactList button,
+.costRow {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.topbar,
+.panelHeader,
+.spendBar > div,
+.compactList button,
+.costRow {
+  justify-content: space-between;
+}
+
+.eyebrow {
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.headerActions button,
+.controlStrip input,
+.controlStrip select {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-strong);
+  font: inherit;
+  font-size: 14px;
+  min-height: 40px;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.headerActions button {
+  background: #fff;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0 14px;
+}
+
+.headerActions button:hover,
+.modalActions button:hover,
+.remediationList button:hover,
+.drawerClose:hover,
+.formStack button:hover {
+  box-shadow: 0 10px 20px rgba(16, 24, 40, 0.12);
+  transform: translateY(-1px);
+}
+
+.headerActions button:focus-visible,
+.controlStrip input:focus-visible,
+.controlStrip select:focus-visible,
+.builderGrid select:focus-visible,
+.formStack input:focus-visible,
+.formStack select:focus-visible,
+.resourceDetails input:focus-visible,
+.resourceDetails select:focus-visible,
+.modalActions button:focus-visible,
+.remediationList button:focus-visible {
+  outline: 3px solid rgba(31, 157, 138, 0.22);
+  outline-offset: 2px;
+}
+
+.headerActions .primary {
+  background: #111827;
+  color: #fff;
+}
+
+.controlStrip {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.04);
+}
+
+.controlStrip input,
+.controlStrip select {
+  background: #f9fafb;
+  padding: 0 10px;
+}
+
+.controlStrip input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.viewGrid,
+.governanceGrid,
+.topologyWorkbench {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.55fr);
+}
+
+.metricGrid {
+  display: grid;
+  gap: 12px;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.panel,
+.metric {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.panel {
+  min-width: 0;
+  padding: 18px;
+  animation: cardIn 360ms ease both;
+}
+
+.panel:hover,
+.metric:hover {
+  border-color: #c8d3e1;
+  box-shadow: 0 20px 44px rgba(16, 24, 40, 0.11);
+  transform: translateY(-2px);
+}
+
+.wide,
+.fullHeight {
+  grid-column: 1 / -1;
+}
+
+.metric {
+  padding: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.metric::after {
+  border-radius: 999px;
+  content: "";
+  height: 88px;
+  opacity: 0.16;
+  position: absolute;
+  right: -26px;
+  top: -26px;
+  width: 88px;
+}
+
+.metric-blue::after {
+  background: #2f80ed;
+}
+
+.metric-amber::after {
+  background: #e8792e;
+}
+
+.metric-green::after {
+  background: #0f9f8f;
+}
+
+.metric-slate::after {
+  background: #111827;
+}
+
+.metric span,
+.panelHeader span,
+.metric small,
+.compactList small,
+.resourceDetails dt,
+.findingList small {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.metric strong {
+  color: var(--text-strong);
+  display: block;
+  font-size: 30px;
+  line-height: 1;
+  margin: 8px 0;
+}
+
+.panelTitle {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tooltip {
+  align-items: center;
+  display: inline-flex;
+  position: relative;
+  width: max-content;
+}
+
+.tooltip > button {
+  width: 100%;
+}
+
+.tooltipBubble {
+  background: #111827;
+  border-radius: 7px;
+  bottom: calc(100% + 9px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.22);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  left: 50%;
+  line-height: 1.35;
+  max-width: 240px;
+  opacity: 0;
+  padding: 8px 10px;
+  pointer-events: none;
+  position: absolute;
+  transform: translate(-50%, 4px);
+  transition: opacity 150ms ease, transform 150ms ease;
+  white-space: normal;
+  width: max-content;
+  z-index: 50;
+}
+
+.tooltipBubble::after {
+  border: 6px solid transparent;
+  border-top-color: #111827;
+  content: "";
+  left: 50%;
+  position: absolute;
+  top: 100%;
+  transform: translateX(-50%);
+}
+
+.tooltip:hover .tooltipBubble,
+.tooltip:focus-within .tooltipBubble,
+.tooltip:focus .tooltipBubble {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.panelTitle .tooltip {
+  background: #eef7f5;
+  border: 1px solid #cae7e1;
+  border-radius: 999px;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 900;
+  height: 20px;
+  justify-content: center;
+  width: 20px;
+}
+
+.topologyPreview {
+  min-height: 440px;
+}
+
+.topologyViewport {
+  overflow: hidden;
+}
+
+.topologyCanvas {
+  display: block;
+  width: 100%;
+}
+
+.topologyCanvas text {
+  fill: #64748b;
+  font-size: 12px;
+  text-anchor: middle;
+}
+
+.canvasHitArea {
+  fill: transparent;
+  cursor: grab;
+}
+
+.topologyEdge path {
+  fill: none;
+  marker-end: url(#topologyArrow);
+  stroke: #95a3b8;
+  stroke-linecap: round;
+  stroke-width: 2.2;
+}
+
+#topologyArrow path {
+  fill: #95a3b8;
+}
+
+.topologyEdge.planned path {
+  marker-end: url(#topologyArrowPlanned);
+  stroke: #0f766e;
+  stroke-dasharray: 10 7;
+  stroke-width: 3;
+  animation: dashFlow 1100ms linear infinite;
+}
+
+#topologyArrowPlanned path {
+  fill: #0f766e;
+}
+
+.edgeLabel rect {
+  fill: rgba(255, 255, 255, 0.92);
+  stroke: #d9e0ea;
+}
+
+.edgeLabel text {
+  fill: #475467;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.resourceCardNode {
+  cursor: pointer;
+  transition: filter 180ms ease, opacity 180ms ease;
+}
+
+.resourceCardNode:hover {
+  filter: drop-shadow(0 14px 20px rgba(16, 24, 40, 0.18));
+}
+
+.resourceCardNode .nodeCard {
+  fill: #fff;
+  stroke: #d9e0ea;
+  stroke-width: 1.4;
+}
+
+.resourceCardNode .nodeAccent {
+  fill: currentColor;
+}
+
+.resourceCardNode.selected .nodeCard {
+  stroke: #111827;
+  stroke-width: 2.6;
+  filter: drop-shadow(0 12px 18px rgba(16, 24, 40, 0.28));
+  animation: selectedPulse 1700ms ease-in-out infinite;
+}
+
+.resourceCardNode.target .nodeCard {
+  stroke: #0f766e;
+  stroke-dasharray: 6 4;
+  stroke-width: 2.4;
+}
+
+.resourceCardNode.riskHigh .nodeCard {
+  stroke: #dc2626;
+  stroke-width: 2.4;
+}
+
+.resourceCardNode.dimmed {
+  opacity: 0.22;
+}
+
+.resourceCardNode .nodeProvider {
+  fill: currentColor;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-anchor: start;
+  text-transform: uppercase;
+}
+
+.resourceCardNode .nodeName {
+  fill: #101828;
+  font-size: 13px;
+  font-weight: 900;
+  text-anchor: start;
+}
+
+.resourceCardNode .nodeType,
+.resourceCardNode .nodeMeta {
+  fill: #667085;
+  font-size: 11px;
+  font-weight: 700;
+  text-anchor: start;
+}
+
+.providerAws {
+  background: #fff3e8;
+  color: #9a3412;
+  fill: #e8792e;
+}
+
+.providerGcp {
+  background: #eef5ff;
+  color: #1d4ed8;
+  fill: #2f80ed;
+}
+
+.providerAzure {
+  background: #ecfdf5;
+  color: #047857;
+  fill: #0f9f8f;
+}
+
+.providerOther {
+  background: #f3f4f6;
+  color: #374151;
+  fill: #6b7280;
+}
+
+.providerGroup rect {
+  fill: rgba(248, 250, 252, 0.86);
+  stroke: #d9e0ea;
+  stroke-dasharray: 0;
+}
+
+.providerGroup text {
+  fill: #475467;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.providerPill,
+.severity,
+.statusDot {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 5px 9px;
+  transition: transform 160ms ease;
+}
+
+.providerPill:hover,
+.severity:hover,
+.statusDot:hover {
+  transform: translateY(-1px);
+}
+
+.statusDot.running,
+.statusDot.active,
+.statusDot.available {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.severity.high {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.severity.medium {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.stateBadge {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 5px 9px;
+  width: max-content;
+}
+
+.stateBadge.suggested {
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.stateBadge.approved,
+.stateBadge.queued {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.stateBadge.executed {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.stateBadge.failed {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.spendBars,
+.compactList,
+.findingList,
+.resourceDetails,
+.commandGrid,
+.automationCards,
+.pipelineList,
+.observabilityList,
+.remediationList,
+.formStack {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.barTrack {
+  background: #e9eef5;
+  border-radius: 999px;
+  height: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.barTrack span {
+  background: linear-gradient(90deg, #0f9f8f, #2f80ed);
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+  min-width: 8px;
+  transform-origin: left;
+  animation: barGrow 700ms ease both;
+}
+
+.compactList button,
+.findingList button,
+.observabilityList button {
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-strong);
+  cursor: pointer;
+  font: inherit;
+  padding: 12px;
+  text-align: left;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.compactList button:hover,
+.findingList button:hover,
+.observabilityList button:hover,
+.pipelineItem:hover,
+.remediationList article:hover,
+.runbookGrid article:hover,
+.scoreGrid div:hover {
+  background: #fff;
+  border-color: #c8d3e1;
+  box-shadow: 0 12px 26px rgba(16, 24, 40, 0.09);
+  transform: translateY(-2px);
+}
+
+.resourceAvatar {
+  align-items: center;
+  background: #111827;
+  border-radius: 7px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 900;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.compactList em {
+  color: var(--text-strong);
+  font-style: normal;
+  font-weight: 900;
+}
+
+.resourceDetails h3 {
+  color: var(--text-strong);
+  font-size: 24px;
+  margin: 4px 0;
+}
+
+.resourceDetails dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.resourceDetails div {
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+}
+
+.resourceDetails dd {
+  color: var(--text-strong);
+  margin: 0;
+}
+
+.tableWrap {
+  margin-top: 16px;
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 980px;
+  width: 100%;
+}
+
+th,
+td {
+  border-top: 1px solid var(--border);
+  padding: 13px 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+tbody tr {
+  cursor: pointer;
+}
+
+tbody tr:hover {
+  background: #f9fafb;
+}
+
+td strong,
+td span {
+  display: block;
+}
+
+.findingList button {
+  display: grid;
+  gap: 8px;
+}
+
+.topologyTools {
+  align-self: start;
+}
+
+.topologyWorkbenchInteractive {
+  grid-template-columns: minmax(0, 1.7fr) minmax(340px, 0.55fr);
+}
+
+.topologyStage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.topologyCommandBar,
+.topologyFooter,
+.providerLegend,
+.panPad {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.topologyCommandBar {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  flex-wrap: wrap;
+  padding: 8px;
+}
+
+.topologyCommandBar button,
+.topologyCommandBar select,
+.providerLegend button,
+.panPad button {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-strong);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  min-height: 34px;
+  padding: 0 10px;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.topologyCommandBar button:hover,
+.providerLegend button:hover,
+.panPad button:hover {
+  border-color: #c8d3e1;
+  box-shadow: 0 8px 18px rgba(16, 24, 40, 0.09);
+  transform: translateY(-1px);
+}
+
+.compactSegmented {
+  grid-template-columns: repeat(2, 1fr);
+  margin-top: 0;
+  min-width: 190px;
+}
+
+.topologyFooter {
+  justify-content: space-between;
+}
+
+.providerLegend {
+  flex-wrap: wrap;
+}
+
+.providerLegend button {
+  align-items: center;
+  display: inline-flex;
+  gap: 7px;
+}
+
+.providerLegend strong {
+  background: #eef2f7;
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 2px 7px;
+}
+
+.legendDot {
+  border-radius: 999px;
+  display: inline-block;
+  height: 9px;
+  width: 9px;
+}
+
+.legendAWS {
+  background: #e8792e;
+}
+
+.legendGCP {
+  background: #2f80ed;
+}
+
+.legendAzure {
+  background: #0f9f8f;
+}
+
+.legendOther {
+  background: #6b7280;
+}
+
+.panPad {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+}
+
+.topologyViewport {
+  background:
+    linear-gradient(#f7f9fc 1px, transparent 1px),
+    linear-gradient(90deg, #f7f9fc 1px, transparent 1px),
+    #fff;
+  background-size: 28px 28px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.draftLink path {
+  fill: none;
+  marker-end: url(#topologyArrowPlanned);
+  stroke: #111827;
+  stroke-dasharray: 4 8;
+  stroke-linecap: round;
+  stroke-width: 4;
+  animation: dashFlow 900ms linear infinite;
+}
+
+.draftLink text {
+  fill: #111827;
+  font-weight: 900;
+}
+
+.selectedResourceCard {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.miniEyebrow {
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.resourceSummary {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: -4px 0 8px;
+}
+
+.impactGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 14px;
+}
+
+.impactGrid div {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.impactGrid div:hover {
+  box-shadow: 0 10px 22px rgba(16, 24, 40, 0.08);
+  transform: translateY(-2px);
+}
+
+.impactGrid span {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.impactGrid strong {
+  color: var(--text-strong);
+  display: block;
+  font-size: 24px;
+  margin-top: 6px;
+}
+
+.plannedList,
+.connectionList {
+  background: #111827;
+  border-radius: 8px;
+  color: #d1d5db;
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+}
+
+.plannedList strong,
+.connectionList strong {
+  color: #fff;
+}
+
+.plannedList div,
+.connectionList button {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+}
+
+.plannedList em {
+  color: #5eead4;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.connectionList button {
+  color: #e5e7eb;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.connectionList button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(2px);
+}
+
+.connectionList button span {
+  color: #5eead4;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.segmented {
+  background: #f3f6fa;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 16px;
+  padding: 4px;
+}
+
+.segmented button,
+.formStack button {
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  min-height: 36px;
+}
+
+.segmented button {
+  background: transparent;
+  color: var(--text-muted);
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.segmented button.active {
+  background: #111827;
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(17, 24, 39, 0.18);
+}
+
+.formStack label {
+  color: var(--text-muted);
+  display: grid;
+  font-size: 12px;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.formStack input,
+.formStack select,
+.resourceDetails input,
+.resourceDetails select {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-strong);
+  font: inherit;
+  min-height: 36px;
+  padding: 0 10px;
+  width: 100%;
+}
+
+.formStack .primary,
+.primary.fullWidth {
+  background: #111827;
+  color: #fff;
+}
+
+.fullWidth {
+  background: #eef2f7;
+  color: var(--text-strong);
+  width: 100%;
+}
+
+.observabilityList button {
+  display: grid;
+  gap: 5px;
+}
+
+.observabilityList span,
+.pipelineItem span {
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pipelineItem,
+.remediationList article {
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.pipelineItem {
+  grid-template-columns: minmax(180px, 1fr) auto minmax(260px, 1fr);
+}
+
+.pipelineItem em {
+  align-self: center;
+  background: #eef2ff;
+  border-radius: 999px;
+  color: #3730a3;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+  padding: 6px 9px;
+}
+
+.pipelineItem code,
+.remediationList code {
+  background: #111827;
+  border-radius: 7px;
+  color: #d1fae5;
+  display: block;
+  font-size: 12px;
+  overflow-x: auto;
+  padding: 10px;
+  white-space: pre;
+}
+
+.remediationList article > div {
+  display: grid;
+  gap: 7px;
+}
+
+.automationModes {
+  max-width: 460px;
+}
+
+.builderGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 16px 0;
+}
+
+.builderGrid label {
+  color: var(--text-muted);
+  display: grid;
+  font-size: 12px;
+  font-weight: 900;
+  gap: 6px;
+}
+
+.builderGrid select {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-strong);
+  font: inherit;
+  min-height: 38px;
+  padding: 0 10px;
+}
+
+.runbookGrid,
+.scoreGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-top: 16px;
+}
+
+.runbookGrid article,
+.scoreGrid div {
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.runbookGrid ol {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.scoreGrid strong {
+  color: var(--text-strong);
+  display: block;
+  font-size: 28px;
+  margin-top: 6px;
+}
+
+.toastStack {
+  bottom: 18px;
+  display: grid;
+  gap: 8px;
+  position: fixed;
+  right: 18px;
+  z-index: 30;
+}
+
+.toast {
+  background: #111827;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  color: #fff;
+  font-weight: 800;
+  padding: 12px 14px;
+  animation: toastIn 260ms ease both;
+}
+
+.detailsDrawer {
+  background: #fff;
+  border-left: 1px solid var(--border);
+  bottom: 0;
+  box-shadow: -18px 0 36px rgba(16, 24, 40, 0.14);
+  display: grid;
+  gap: 14px;
+  max-width: 420px;
+  overflow-y: auto;
+  padding: 22px;
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 90vw;
+  z-index: 20;
+  animation: drawerIn 240ms ease both;
+}
+
+.detailsDrawer dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.detailsDrawer dl div {
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+}
+
+.drawerClose {
+  justify-self: end;
+}
+
+.drawerAction {
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.modalBackdrop {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 40;
+  animation: fadeIn 160ms ease both;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  max-height: 88vh;
+  max-width: 760px;
+  overflow-y: auto;
+  padding: 20px;
+  width: 100%;
+  animation: modalIn 220ms ease both;
+}
+
+.modalActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.modalTabs,
+.statusTimeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.modalTabs button,
+.statusTimeline button {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 7px 10px;
+}
+
+.modalTabs button.active,
+.statusTimeline button.active {
+  background: #111827;
+  color: #fff;
+}
+
+.executionChecklist {
+  display: grid;
+  gap: 8px;
+}
+
+.executionChecklist label {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.modalActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.observabilityGrid,
+.driftGrid,
+.resourcePage {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.metricChartRow {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  margin-top: 16px;
+}
+
+.miniChart,
+.signalLists article,
+.driftColumns article,
+.detailGrid div {
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.miniChart span,
+.driftColumns strong,
+.signalLists strong,
+.detailGrid dt {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.miniChart strong {
+  color: var(--text-strong);
+  display: block;
+  font-size: 22px;
+  margin: 8px 0;
+}
+
+.miniChart div {
+  background: #e9eef5;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.miniChart i {
+  background: linear-gradient(90deg, #0f9f8f, #2f80ed);
+  display: block;
+  height: 100%;
+}
+
+.signalLists,
+.driftColumns,
+.detailGrid {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.signalLists button,
+.driftColumns span,
+.commandPalette button {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-strong);
+  cursor: pointer;
+  font: inherit;
+  padding: 9px 10px;
+  text-align: left;
+}
+
+.commandPalette {
+  background: #fff;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  max-width: 520px;
+  padding: 18px;
+  width: 100%;
+}
+
+.commandPalette input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.skeletonPanel {
+  min-height: 220px;
+}
+
+.modalActions button,
+.remediationList button,
+.drawerClose {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+.automationPanel {
+  min-height: 520px;
+}
+
+.commandGrid code {
+  background: #111827;
+  border-radius: 8px;
+  color: #d1fae5;
+  display: block;
+  overflow-x: auto;
+  padding: 14px;
+}
+
+.automationCards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.automationCard {
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.automationCard strong {
+  color: var(--text-strong);
+  display: block;
+  font-size: 24px;
+  margin-top: 8px;
+}
+
+@keyframes contentIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes barGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes dashFlow {
+  to {
+    stroke-dashoffset: -34;
+  }
+}
+
+@keyframes selectedPulse {
+  0%, 100% {
+    filter: drop-shadow(0 10px 14px rgba(16, 24, 40, 0.22));
+  }
+  50% {
+    filter: drop-shadow(0 16px 24px rgba(15, 118, 110, 0.34));
+  }
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drawerIn {
+  from {
+    transform: translateX(24px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 1100px) {
+  .appFrame {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .sidebar nav {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .viewGrid,
+  .governanceGrid,
+  .topologyWorkbench,
+  .metricGrid,
+  .automationCards,
+  .builderGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .pipelineItem {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar,
+  .controlStrip {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .headerActions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 700px) {
+  .content,
+  .sidebar {
+    padding: 16px;
+  }
+
+  .sidebar nav {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .headerActions button,
+  .controlStrip input,
+  .controlStrip select {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+}
