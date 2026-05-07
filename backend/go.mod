@@ -2,7 +2,10 @@ module infrasight
 
 go 1.25.0
 
-require github.com/gofiber/fiber/v2 v2.52.6
+require (
+	github.com/gofiber/fiber/v2 v2.52.13
+	modernc.org/sqlite v1.50.0
+)
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
@@ -22,5 +25,4 @@ require (
 	modernc.org/libc v1.72.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.50.0 // indirect
 )
