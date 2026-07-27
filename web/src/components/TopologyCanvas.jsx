@@ -21,6 +21,7 @@ export function TopologyCanvas({
   highRiskIds = [],
   onCanvasPan,
   onWheelZoom,
+  impactedIds = [],
 }) {
   const groups = {
     AWS: { x: 140, y: compact ? 82 : 96, width: 220, height: compact ? 318 : 500 },
@@ -99,9 +100,10 @@ export function TopologyCanvas({
             const dimmed = shouldDim(resource, selectedResourceId, related, visualFilter, blastRadius)
             const hidden = !matchesFilter(resource, visualFilter)
             if (hidden) return null
+            const isImpacted = impactedIds.includes(resource.id)
             return (
             <g
-              className={`resourceCardNode ${providerClass[resource.provider] || 'providerOther'} ${selectedResourceId === resource.id ? 'selected' : ''} ${targetResourceId === resource.id ? 'target' : ''} ${highRiskIds.includes(resource.id) ? 'riskHigh' : ''} ${dimmed ? 'dimmed' : ''}`}
+              className={`resourceCardNode ${providerClass[resource.provider] || 'providerOther'} ${selectedResourceId === resource.id ? 'selected' : ''} ${targetResourceId === resource.id ? 'target' : ''} ${highRiskIds.includes(resource.id) ? 'riskHigh' : ''} ${isImpacted ? 'impacted' : ''} ${dimmed ? 'dimmed' : ''}`}
               key={resource.id}
               onClick={() => onSelect(resource.id)}
               onPointerDown={(event) => startDrag(event, resource, zoom, onMove)}

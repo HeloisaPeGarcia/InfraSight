@@ -40,6 +40,29 @@ export function Topology({
     }, {})
   }, [snapshot.resources])
 
+  const simulatedImpactedIds = useMemo(() => {
+    if (mode !== 'Simulate' || !selectedResource?.id) return []
+    const impacted = new Set()
+    const queue = [selectedResource.id]
+    while (queue.length > 0) {
+      const current = queue.shift()
+      snapshot.edges.forEach((edge) => {
+        if (edge.to === current && !impacted.has(edge.from) && edge.from !== selectedResource.id) {
+          impacted.add(edge.from)
+          queue.push(edge.from)
+        }
+      })
+    }
+    return Array.from(impacted)
+  }, [mode, selectedResource?.id, snapshot.edges])
+
+  const simulatedImpactedCost = useMemo(() => {
+    return simulatedImpactedIds.reduce((total, id) => {
+      const resource = snapshot.resources.find((r) => r.id === id)
+      return total + (resource?.monthlyCost || 0)
+    }, 0)
+  }, [simulatedImpactedIds, snapshot.resources])
+
   function pan(x, y) {
     setOffset((current) => ({ x: current.x + x, y: current.y + y }))
   }
@@ -165,7 +188,7 @@ export function Topology({
           zoom={zoom}
           offset={offset}
           showLabels={showLabels}
-          showDraft={mode !== 'Explore'}
+          showDraft={mode !== 'Explore' && mode !== 'Simulate'}
           positions={positions}
           onMove={moveNode}
           visualFilter={visualFilter}
@@ -173,6 +196,7 @@ export function Topology({
           highRiskIds={highRiskIds}
           onCanvasPan={panCanvas}
           onWheelZoom={wheelZoom}
+          impactedIds={simulatedImpactedIds}
         />
 
         <div className="topologyFooter">
@@ -196,65 +220,119 @@ export function Topology({
 
       <aside className="panel topologyTools">
         <PanelHeader title="Interaction Panel" meta={mode} tooltip="Switch modes, edit metadata, preview a link and add it to the local plan." />
-        <div className="segmented">
-          {['Explore', 'Plan', 'Remediate'].map((item) => (
+        <div className="segmented segmentedFourColumns">
+          {['Explore', 'Plan', 'Remediate', 'Simulate'].map((item) => (
             <button className={mode === item ? 'active' : ''} key={item} type="button" onClick={() => onMode(item)}>{item}</button>
           ))}
         </div>
 
-        <div className="resourceDetails selectedResourceCard">
-          <span className="miniEyebrow">{selectedResource?.provider} / {selectedResource?.environment || 'unknown'}</span>
-          <h3>{selectedResource?.name}</h3>
-          <p className="resourceSummary">{selectedResource?.type} in {selectedResource?.region}</p>
-          <dl>
-            <div><dt>Owner <Tooltip label="Local ownership metadata used by governance scoring.">?</Tooltip></dt><dd><input value={selectedResource?.owner || ''} onChange={(event) => onUpdateResource('owner', event.target.value)} /></dd></div>
-            <div><dt>Criticality</dt><dd><select value={selectedResource?.criticality || 'medium'} onChange={(event) => onUpdateResource('criticality', event.target.value)}><option>low</option><option>medium</option><option>high</option></select></dd></div>
-            <div><dt>Monthly cost</dt><dd>${selectedResource?.monthlyCost || 0}</dd></div>
-            <div><dt>Status</dt><dd>{selectedResource?.status}</dd></div>
-          </dl>
-        </div>
-
-        <div className="impactGrid">
-          <ImpactCard label="Incoming" value={impact.incoming.length} />
-          <ImpactCard label="Outgoing" value={impact.outgoing.length} />
-          <ImpactCard label="Planned" value={impact.planned.length} />
-        </div>
-
-        <div className="formStack">
-          <label>Target resource<select value={targetResource} onChange={(event) => setTargetResource(event.target.value)}>{snapshot.resources.map((resource) => <option key={resource.id} value={resource.id}>{resource.name}</option>)}</select></label>
-          <label>Automation link<input value={edgeLabel} onChange={(event) => setEdgeLabel(event.target.value)} /></label>
-          <button className="primary fullWidth" type="button" onClick={onAdd}>Add planned link</button>
-          <button className="fullWidth" type="button" onClick={onClear}>Clear plan ({plannedEdges.length})</button>
-        </div>
-
-        <div className="plannedList">
-          <strong>Planned links</strong>
-          {plannedEdges.length === 0 && <small>No planned links yet.</small>}
-          {plannedEdges.map((edge) => (
-            <div key={`${edge.from}-${edge.to}-${edge.label}`}>
-              <span>{nameFor(snapshot.resources, edge.from)}</span>
-              <em>{edge.label}</em>
-              <span>{nameFor(snapshot.resources, edge.to)}</span>
+        {mode === 'Simulate' ? (
+          <div className="simulatePanel">
+            <div className="simulateHeader">
+              <h3>Outage Simulator</h3>
+              <p>Simulates downstream impact propagation. Select any resource to view its complete blast radius.</p>
             </div>
-          ))}
-        </div>
+            {selectedResource ? (
+              <div className="simulationResult">
+                <div className="outageSource">
+                  <span>Failed Resource</span>
+                  <strong>{selectedResource.name}</strong>
+                  <span className="resourceType">{selectedResource.type}</span>
+                </div>
+                <div className="impactMetrics">
+                  <div className="impactMetric">
+                    <span>Downstream Impacted</span>
+                    <strong>{simulatedImpactedIds.length}</strong>
+                  </div>
+                  <div className="impactMetric">
+                    <span>Monthly Cost Risk</span>
+                    <strong>${simulatedImpactedCost}</strong>
+                  </div>
+                </div>
+                <div className="impactedList">
+                  <strong>Blast Radius Resources ({simulatedImpactedIds.length})</strong>
+                  {simulatedImpactedIds.length === 0 ? (
+                    <div className="emptySimulateState" style={{ padding: '16px' }}>
+                      No downstream resources will be affected by this failure.
+                    </div>
+                  ) : (
+                    <ul>
+                      {simulatedImpactedIds.map((id) => {
+                        const resource = snapshot.resources.find((r) => r.id === id)
+                        return (
+                          <li key={id} className="impactedItem" onClick={() => onSelect(id)}>
+                            <strong>{resource?.name || id}</strong>
+                            <span>{resource?.type} (${resource?.monthlyCost || 0})</span>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="emptySimulateState">
+                Select any resource on the topology canvas to start the simulation.
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="resourceDetails selectedResourceCard">
+              <span className="miniEyebrow">{selectedResource?.provider} / {selectedResource?.environment || 'unknown'}</span>
+              <h3>{selectedResource?.name}</h3>
+              <p className="resourceSummary">{selectedResource?.type} in {selectedResource?.region}</p>
+              <dl>
+                <div><dt>Owner <Tooltip label="Local ownership metadata used by governance scoring.">?</Tooltip></dt><dd><input value={selectedResource?.owner || ''} onChange={(event) => onUpdateResource('owner', event.target.value)} /></dd></div>
+                <div><dt>Criticality</dt><dd><select value={selectedResource?.criticality || 'medium'} onChange={(event) => onUpdateResource('criticality', event.target.value)}><option>low</option><option>medium</option><option>high</option></select></dd></div>
+                <div><dt>Monthly cost</dt><dd>${selectedResource?.monthlyCost || 0}</dd></div>
+                <div><dt>Status</dt><dd>{selectedResource?.status}</dd></div>
+              </dl>
+            </div>
 
-        <div className="connectionList">
-          <strong>Connections for {selectedResource?.name}</strong>
-          {[...impact.outgoing, ...impact.incoming].length === 0 && <small>No direct connections.</small>}
-          {impact.outgoing.map((edge) => (
-            <button key={`out-${edge.from}-${edge.to}`} type="button" onClick={() => onSelect(edge.to)}>
-              <span>outgoing</span>
-              {edge.label} {'->'} {nameFor(snapshot.resources, edge.to)}
-            </button>
-          ))}
-          {impact.incoming.map((edge) => (
-            <button key={`in-${edge.from}-${edge.to}`} type="button" onClick={() => onSelect(edge.from)}>
-              <span>incoming</span>
-              {nameFor(snapshot.resources, edge.from)} {'->'} {edge.label}
-            </button>
-          ))}
-        </div>
+            <div className="impactGrid">
+              <ImpactCard label="Incoming" value={impact.incoming.length} />
+              <ImpactCard label="Outgoing" value={impact.outgoing.length} />
+              <ImpactCard label="Planned" value={impact.planned.length} />
+            </div>
+
+            <div className="formStack">
+              <label>Target resource<select value={targetResource} onChange={(event) => setTargetResource(event.target.value)}>{snapshot.resources.map((resource) => <option key={resource.id} value={resource.id}>{resource.name}</option>)}</select></label>
+              <label>Automation link<input value={edgeLabel} onChange={(event) => setEdgeLabel(event.target.value)} /></label>
+              <button className="primary fullWidth" type="button" onClick={onAdd}>Add planned link</button>
+              <button className="fullWidth" type="button" onClick={onClear}>Clear plan ({plannedEdges.length})</button>
+            </div>
+
+            <div className="plannedList">
+              <strong>Planned links</strong>
+              {plannedEdges.length === 0 && <small>No planned links yet.</small>}
+              {plannedEdges.map((edge) => (
+                <div key={`${edge.from}-${edge.to}-${edge.label}`}>
+                  <span>{nameFor(snapshot.resources, edge.from)}</span>
+                  <em>{edge.label}</em>
+                  <span>{nameFor(snapshot.resources, edge.to)}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="connectionList">
+              <strong>Connections for {selectedResource?.name}</strong>
+              {[...impact.outgoing, ...impact.incoming].length === 0 && <small>No direct connections.</small>}
+              {impact.outgoing.map((edge) => (
+                <button key={`out-${edge.from}-${edge.to}`} type="button" onClick={() => onSelect(edge.to)}>
+                  <span>outgoing</span>
+                  {edge.label} {'->'} {nameFor(snapshot.resources, edge.to)}
+                </button>
+              ))}
+              {impact.incoming.map((edge) => (
+                <button key={`in-${edge.from}-${edge.to}`} type="button" onClick={() => onSelect(edge.from)}>
+                  <span>incoming</span>
+                  {nameFor(snapshot.resources, edge.from)} {'->'} {edge.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </aside>
     </div>
   )
