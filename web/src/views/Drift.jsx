@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { PanelHeader } from '../components/ui'
+import { api } from '../services/api'
 
 export function Drift() {
   const [drift, setDrift] = useState(null)
 
   useEffect(() => {
-    fetch('/api/drift').then((response) => response.json()).then(setDrift).catch(() => setDrift({
+    api.getDrift().then(setDrift).catch(() => setDrift({
       summary: 'Mock drift unavailable',
       added: [],
       changed: [],

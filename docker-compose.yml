@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # Production Single-Binary Service (Backend + Embedded React Web UI)
+  infrasight:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: infrasight-app
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DB_PATH=/app/data/infrasight.db
+    volumes:
+      - infrasight-data:/app/data
+    restart: unless-stopped
+
+  # Hot-reloading Web Dev Service (Optional for Frontend Development)
+  web-dev:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: infrasight-web-dev
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8080/api
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    depends_on:
+      - infrasight
+    profiles:
+      - dev
+
+volumes:
+  infrasight-data:

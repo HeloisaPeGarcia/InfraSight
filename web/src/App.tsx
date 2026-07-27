@@ -15,6 +15,8 @@ import { Topology } from './views/Topology'
 import { buildInsights, exportSnapshot, filterResources, providers } from './utils/insights'
 import { buildObservabilitySignals, buildPipelines, remediationFor } from './utils/devops'
 
+import { api } from './services/api'
+
 const navItems = ['Overview', 'Topology', 'Inventory', 'Observability', 'Drift', 'Governance', 'Automation', 'Resource']
 
 function App() {
@@ -23,19 +25,19 @@ function App() {
   const [activeView, setActiveView] = useState('Overview')
   const [selectedResourceId, setSelectedResourceId] = useState('aws_instance.api')
   const [topologyMode, setTopologyMode] = useState('Explore')
-  const [plannedEdges, setPlannedEdges] = useState([])
+  const [plannedEdges, setPlannedEdges] = useState<any[]>([])
   const [targetResource, setTargetResource] = useState('')
   const [edgeLabel, setEdgeLabel] = useState('auto-remediate')
-  const [actions, setActions] = useState([])
-  const [observability, setObservability] = useState([])
-  const [plans, setPlans] = useState([])
-  const [runbooks, setRunbooks] = useState([])
-  const [scorecard, setScorecard] = useState({})
-  const [modalAction, setModalAction] = useState(null)
+  const [actions, setActions] = useState<any[]>([])
+  const [observability, setObservability] = useState<any[]>([])
+  const [plans, setPlans] = useState<any[]>([])
+  const [runbooks, setRunbooks] = useState<any[]>([])
+  const [scorecard, setScorecard] = useState<Record<string, any>>({})
+  const [modalAction, setModalAction] = useState<any>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [theme, setTheme] = useState('light')
   const [paletteOpen, setPaletteOpen] = useState(false)
-  const [toasts, setToasts] = useState([])
+  const [toasts, setToasts] = useState<any[]>([])
   const [builder, setBuilder] = useState({
     trigger: 'pull_request',
     validate: 'terraform_plan_and_policy',
@@ -45,20 +47,20 @@ function App() {
   const [filters, setFilters] = useState({ query: '', provider: 'All', status: 'All', environment: 'All' })
 
   useEffect(() => {
-    loadJson('/api/snapshot', fallbackSnapshot).then((payload) => {
+    api.getSnapshot(fallbackSnapshot).then((payload) => {
       setSnapshot(payload)
       setSource(payload === fallbackSnapshot ? 'Browser fallback' : 'Backend API')
       setSelectedResourceId(payload.resources[0]?.id || '')
       setTargetResource(payload.resources[1]?.id || payload.resources[0]?.id || '')
     })
-    loadJson('/api/actions', []).then((payload) => {
+    api.getActions().then((payload) => {
       setActions(payload)
       setBuilder((current) => ({ ...current, actionId: payload[0]?.id || '' }))
     })
-    loadJson('/api/observability', []).then(setObservability)
-    loadJson('/api/plans', []).then(setPlans)
-    loadJson('/api/runbooks', []).then(setRunbooks)
-    loadJson('/api/score', {}).then(setScorecard)
+    api.getObservability().then(setObservability)
+    api.getPlans().then(setPlans)
+    api.getRunbooks().then(setRunbooks)
+    api.getScore().then(setScorecard)
   }, [])
 
   const workingSnapshot = useMemo(() => ({ ...snapshot, edges: [...snapshot.edges, ...plannedEdges] }), [plannedEdges, snapshot])
@@ -72,17 +74,17 @@ function App() {
   const environments = ['All', ...new Set(snapshot.resources.map((resource) => resource.environment || 'unknown'))]
   const commands = ['INFRA_STATE_FILE=terraform.tfstate infrasight', 'curl http://localhost:8080/api/actions', 'curl http://localhost:8080/api/report.md']
 
-  function toast(message) {
+  function toast(message: string) {
     const id = Date.now()
     setToasts((current) => [...current, { id, message }])
     window.setTimeout(() => setToasts((current) => current.filter((item) => item.id !== id)), 2800)
   }
 
-  function updateFilter(key, value) {
+  function updateFilter(key: string, value: string) {
     setFilters((current) => ({ ...current, [key]: value }))
   }
 
-  function updateSelectedResource(key, value) {
+  function updateSelectedResource(key: any, value: any) {
     setSnapshot((current) => ({
       ...current,
       resources: current.resources.map((resource) => resource.id === selectedResource?.id ? { ...resource, [key]: value } : resource),
@@ -96,36 +98,42 @@ function App() {
     toast('Planned topology link added')
   }
 
-  function handleImport(event) {
+  function handleImport(event: { target: { files: any[] } }) {
     const file = event.target.files?.[0]
     if (!file) return
-    file.text().then((content) => {
-      const payload = JSON.parse(content)
-      setSnapshot({ generatedAt: payload.generatedAt || new Date().toISOString(), resources: payload.resources || [], edges: payload.edges || [], findings: payload.findings || [] })
-      setSource(file.name)
-      setSelectedResourceId(payload.resources?.[0]?.id || '')
-      setPlannedEdges([])
-      toast('Snapshot imported and validated locally')
+    file.text().then((content: string) => {
+      try {
+        const payload = JSON.parse(content)
+        setSnapshot({ generatedAt: payload.generatedAt || new Date().toISOString(), resources: payload.resources || [], edges: payload.edges || [], findings: payload.findings || [] })
+        setSource(file.name)
+        setSelectedResourceId(payload.resources?.[0]?.id || '')
+        setPlannedEdges([])
+        toast('Snapshot imported and validated locally')
+      } catch (err) {
+        toast('Failed to parse snapshot: invalid JSON format')
+      }
+    }).catch(() => {
+      toast('Failed to read import file')
     })
   }
 
   function savePlan() {
     const plan = { ...builder, id: `plan-${Date.now()}`, name: `Pipeline ${builder.trigger}`, state: 'suggested', createdAt: new Date().toISOString() }
-    fetch('/api/plans', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(plan) }).catch(() => null)
+    api.savePlan(plan).catch(() => null)
     setPlans((current) => [plan, ...current])
     toast('Pipeline plan saved')
   }
 
-  function updateActionState(action, state) {
+  function updateActionState(action: { id: any }, state: any) {
     const next = { ...action, state }
-    fetch(`/api/actions/${action.id}/state`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ state }) }).catch(() => null)
+    api.updateActionState(action.id, state).catch(() => null)
     setActions((current) => current.map((item) => item.id === action.id ? next : item))
     setModalAction(next)
     toast(`Action moved to ${state}`)
   }
 
   function exportReport() {
-    window.open('/api/report.md', '_blank')
+    window.open(api.getReportUrl(), '_blank')
     toast('Markdown report opened')
   }
 
@@ -155,8 +163,8 @@ function App() {
         </section>
         {activeView === 'Overview' && <Overview insights={insights} observability={localObservability} pipelines={localPipelines} selectedResource={selectedResource} snapshot={workingSnapshot} onSelect={setSelectedResourceId} />}
         {activeView === 'Topology' && <Topology edgeLabel={edgeLabel} selectedResource={selectedResource} snapshot={workingSnapshot} targetResource={targetResource} mode={topologyMode} plannedEdges={plannedEdges} setEdgeLabel={setEdgeLabel} setTargetResource={setTargetResource} onAdd={addPlannedEdge} onClear={() => setPlannedEdges([])} onMode={setTopologyMode} onSelect={setSelectedResourceId} onUpdateResource={updateSelectedResource} />}
-        {activeView === 'Inventory' && <Inventory resources={filteredResources} onSelect={(id) => { setSelectedResourceId(id); setDrawerOpen(true) }} />}
-        {activeView === 'Observability' && <Observability signals={localObservability} onSelect={(id) => { setSelectedResourceId(id); setActiveView('Resource') }} />}
+        {activeView === 'Inventory' && <Inventory resources={filteredResources} onSelect={(id: string) => { setSelectedResourceId(id); setDrawerOpen(true) }} />}
+        {activeView === 'Observability' && <Observability signals={localObservability} onSelect={(id: string) => { setSelectedResourceId(id); setActiveView('Resource') }} />}
         {activeView === 'Drift' && <Drift />}
         {activeView === 'Governance' && <Governance insights={insights} scorecard={scorecard} actions={actions} onOpenAction={setModalAction} onSelect={setSelectedResourceId} />}
         {activeView === 'Automation' && <Automation actions={actions} builder={builder} commands={commands} pipelines={localPipelines} runbooks={runbooks} setBuilder={setBuilder} onCreatePlan={savePlan} onOpenAction={setModalAction} onReport={exportReport} />}
@@ -165,18 +173,18 @@ function App() {
       {drawerOpen && <DetailsDrawer action={selectedAction} resource={selectedResource} onClose={() => setDrawerOpen(false)} />}
       <ActionModal action={modalAction} onClose={() => setModalAction(null)} onState={updateActionState} />
       <Toasts toasts={toasts} />
-      {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} onGo={(view) => { setActiveView(view); setPaletteOpen(false) }} />}
+      {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} onGo={(view: string) => { setActiveView(view); setPaletteOpen(false) }} />}
     </div>
   )
 }
-
-function loadJson(url, fallback) {
-  return fetch(url).then((response) => response.ok ? response.json() : fallback).catch(() => fallback)
-}
-
 export default App
 
-function CommandPalette({ onClose, onGo }) {
+interface CommandPaletteProps {
+  onClose: () => void;
+  onGo: (view: string) => void;
+}
+
+function CommandPalette({ onClose, onGo }: CommandPaletteProps) {
   return (
     <div className="modalBackdrop">
       <section className="commandPalette">

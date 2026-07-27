@@ -26,16 +26,30 @@ type Server struct {
 
 func New(webFS fs.FS) *Server {
 	cfg := config.Load()
-	app := fiber.New(fiber.Config{AppName: "InfraSight"})
+	app := fiber.New(fiber.Config{
+		AppName: "InfraSight",
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			code := fiber.StatusInternalServerError
+			if e, ok := err.(*fiber.Error); ok {
+				code = e.Code
+			}
+			return c.Status(code).JSON(fiber.Map{
+				"error": err.Error(),
+				"code":  code,
+			})
+		},
+	})
+
 	app.Use(func(c *fiber.Ctx) error {
 		start := time.Now()
 		err := c.Next()
 		log.Printf(`{"method":"%s","path":"%s","status":%d,"duration_ms":%d}`, c.Method(), c.Path(), c.Response().StatusCode(), time.Since(start).Milliseconds())
 		return err
 	})
+
 	store, err := storage.New(cfg.DB)
 	if err != nil {
-		panic(err)
+		log.Printf("[Warning] Failed to initialize SQLite storage (%s): %v. Continuing in-memory.", cfg.DB, err)
 	}
 
 	app.Get("/api/health", func(c *fiber.Ctx) error {
@@ -83,8 +97,10 @@ func New(webFS fs.FS) *Server {
 		if err := c.BodyParser(&payload); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
-		if err := store.SavePolicy("default", payload); err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		if store != nil {
+			if err := store.SavePolicy("default", payload); err != nil {
+				return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			}
 		}
 		return c.JSON(fiber.Map{"ok": true})
 	})
@@ -118,6 +134,9 @@ func New(webFS fs.FS) *Server {
 	})
 
 	app.Get("/api/topology/layout/:id", func(c *fiber.Ctx) error {
+		if store == nil {
+			return c.JSON(domain.TopologyLayout{ID: c.Params("id"), Positions: map[string]domain.Point{}})
+		}
 		layout, err := store.GetTopologyLayout(c.Params("id"))
 		if err != nil {
 			return c.JSON(domain.TopologyLayout{ID: c.Params("id"), Positions: map[string]domain.Point{}})
@@ -134,8 +153,10 @@ func New(webFS fs.FS) *Server {
 		if layout.Positions == nil {
 			layout.Positions = map[string]domain.Point{}
 		}
-		if err := store.SaveTopologyLayout(layout); err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		if store != nil {
+			if err := store.SaveTopologyLayout(layout); err != nil {
+				return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			}
 		}
 		return c.JSON(layout)
 	})
@@ -149,9 +170,13 @@ func New(webFS fs.FS) *Server {
 	})
 
 	app.Get("/api/plans", func(c *fiber.Ctx) error {
-		plans, err := store.ListPlans()
-		if err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		var plans []domain.Plan
+		var err error
+		if store != nil {
+			plans, err = store.ListPlans()
+			if err != nil {
+				return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			}
 		}
 		if len(plans) == 0 {
 			snapshot, err := infra.LoadSnapshot()
@@ -174,16 +199,22 @@ func New(webFS fs.FS) *Server {
 		if plan.State == "" {
 			plan.State = "suggested"
 		}
-		if err := store.SavePlan(plan); err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		if store != nil {
+			if err := store.SavePlan(plan); err != nil {
+				return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			}
 		}
 		return c.JSON(plan)
 	})
 
 	app.Get("/api/runbooks", func(c *fiber.Ctx) error {
-		runbooks, err := store.ListRunbooks()
-		if err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		var runbooks []domain.Runbook
+		var err error
+		if store != nil {
+			runbooks, err = store.ListRunbooks()
+			if err != nil {
+				return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			}
 		}
 		if len(runbooks) == 0 {
 			snapshot, err := infra.LoadSnapshot()
@@ -203,16 +234,22 @@ func New(webFS fs.FS) *Server {
 		if runbook.ID == "" {
 			runbook.ID = "runbook-" + time.Now().UTC().Format("20060102150405")
 		}
-		if err := store.SaveRunbook(runbook); err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		if store != nil {
+			if err := store.SaveRunbook(runbook); err != nil {
+				return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			}
 		}
 		return c.JSON(runbook)
 	})
 
 	app.Get("/api/actions", func(c *fiber.Ctx) error {
-		actions, err := store.ListActions()
-		if err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		var actions []domain.AutomationAction
+		var err error
+		if store != nil {
+			actions, err = store.ListActions()
+			if err != nil {
+				return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			}
 		}
 		if len(actions) == 0 {
 			snapshot, err := infra.LoadSnapshot()
@@ -232,8 +269,10 @@ func New(webFS fs.FS) *Server {
 		if action.State == "" {
 			action.State = "suggested"
 		}
-		if err := store.SaveAction(action); err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		if store != nil {
+			if err := store.SaveAction(action); err != nil {
+				return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			}
 		}
 		return c.JSON(action)
 	})
@@ -245,8 +284,10 @@ func New(webFS fs.FS) *Server {
 		if err := c.BodyParser(&body); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
-		if err := store.UpdateActionState(c.Params("id"), body.State); err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		if store != nil {
+			if err := store.UpdateActionState(c.Params("id"), body.State); err != nil {
+				return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			}
 		}
 		return c.JSON(fiber.Map{"ok": true, "state": body.State})
 	})

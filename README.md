@@ -1,79 +1,99 @@
-# 🔭 InfraSight
+# 🔭 InfraSight — DevOps Local-First Command Center
 
 [![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat-square&logo=go)](https://go.dev/)
-[![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react)](https://reactjs.org/)
+[![React](https://img.shields.io/badge/React-19-20232A?style=flat-square&logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![SQLite](https://img.shields.io/badge/SQLite-07405E?style=flat-square&logo=sqlite)](https://sqlite.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 
-**InfraSight** is a zero-config, local-first DevOps command center designed for visualizing, governing, and planning multicloud infrastructure automation.
+**InfraSight** is a zero-configuration, local-first DevOps command center built for multi-cloud infrastructure governance, interactive dependency topology visualization, cost optimization, and dry-run remediation planning.
 
-By reading local Terraform `.tfstate` files or mock JSON snapshots, InfraSight normalizes resources into an in-memory topology, enriches them with policy findings, observability signals, cost estimates, and remediation runbooks—all served from a single Go binary.
-
----
-
-## ✨ Key Features
-
-### 🔍 Visualization & Inventory
-- **Multi-Cloud Topology:** Provider-grouped visualization for AWS, Azure, GCP, and more.
-- **Searchable Inventory:** Advanced filtering by provider, status, environment, and resource type.
-- **Dependency Mapping:** Understand resource relationships and plan changes locally.
-
-### ⚖️ Governance & Cost Control
-- **Cost Estimation:** Monthly cost projections derived from a local pricing dictionary.
-- **Governance Scoring:** Automated scoring across Security, Reliability, Ownership, and Compliance.
-- **Finding Engine:** Detects high-cost instances, public subnets, missing tags, and exposed VMs.
-
-### ⚙️ Automation & Remediation
-- **Smart Remediation:** Generates provider-aware actions (Terraform snippets, CLI commands, GitHub Actions, and GitLab CI).
-- **Workflow Management:** Lifecycle tracking for actions: `suggested` → `approved` → `queued` → `executed`.
-- **Pipeline Builder:** Local UI to build pipelines with triggers, validations, and manual approvals.
+By ingesting local Terraform `.tfstate` files or normalized JSON snapshots, InfraSight unifies resources across **AWS, Azure, GCP, and custom providers** into an interactive topology canvas, calculates governance scores, projects monthly spend, and scaffolds non-destructive remediation runbooks—all packaged into a single portable Go binary.
 
 ---
 
-## 🏗️ Architecture
+## 📐 Key Technical Decisions & Architectural Rationale
 
-InfraSight is built for portability, embedding a React frontend into a high-performance Go backend.
+### 1. Single Portable Executable via `go:embed`
+* **Decision:** Embed compiled Vite single-page application (SPA) static assets (`../backend/dist`) into the Go binary at compile-time using Go standard library `embed.FS`.
+* **Rationale:** Eliminates deployment complexity, external web server dependencies (Nginx/Apache), and CORS issues. Infrastructure engineers can distribute a single executable binary (`infrasight.exe`) across air-gapped or restricted environments.
+
+### 2. Local-First & Zero Cloud Credentials
+* **Decision:** Perform all parsing, topology rendering, scoring, and dry-run code generation strictly on the user's machine without making outbound network requests to AWS, GCP, or Azure APIs.
+* **Rationale:** Maximum security compliance. Avoids requiring high-privilege cloud IAM credentials or secret access keys, preventing accidental production resource mutations or data exfiltration.
+
+### 3. Resilient Fallback Storage Architecture
+* **Decision:** Primary persistence is handled via SQLite (`modernc.org/sqlite` pure-Go CGO-free driver). If SQLite cannot initialize (e.g. read-only filesystem or restricted permissions), backend handlers gracefully degrade to in-memory fallback state.
+* **Rationale:** Guarantees zero-downtime execution and instant usability out-of-the-box on any workstation, container, or CI/CD environment without requiring local file lock permissions.
+
+### 4. Interactive SVG Canvas & Topology Math
+* **Decision:** Build a custom SVG-based layout renderer supporting smooth drag-and-drop node positioning, provider grouping, radial layout auto-arrangement, blast-radius isolation, and SVG/PNG vector exports.
+* **Rationale:** Avoids heavyweight canvas dependencies and WebGL memory leaks, ensuring lightweight performance across large multicloud state files.
+
+### 5. Unified API Service Layer & React Error Boundary
+* **Decision:** Centralize HTTP communication in `src/services/api.ts` with typed fallback handlers, wrapped by a top-level React `ErrorBoundary`.
+* **Rationale:** Prevents transient network or serialization errors from crashing the UI, providing explicit error notifications and retry capabilities.
+
+---
+
+## 🏗️ System Architecture
 
 ```mermaid
 graph TD
-    subgraph "Frontend (React + Vite)"
-        UI[Dashboard / Topology]
-        PB[Pipeline Builder]
+    subgraph "Frontend Layer (React 19 + TypeScript + Vite)"
+        UI["App Layout / Command Palette"]
+        Canvas["Topology SVG Canvas"]
+        Views["Overview / Governance / Drift / Automation"]
+        API_Client["API Service Layer (api.ts)"]
+        EB["React ErrorBoundary"]
     end
 
-    subgraph "Backend (Go Binary)"
-        API[Fiber API Server]
-        EMB[Go Embed Static Assets]
-        
-        subgraph "Internal Logic"
-            Parser[TF State / JSON Parser]
-            Policy[Policy & Scoring Engine]
-            Autom[Automation & Snippet Gen]
+    subgraph "Backend Layer (Go 1.25 + Fiber Engine)"
+        Server["Fiber HTTP Router (/api/*)"]
+        EmbedFS["go:embed Frontend Assets"]
+
+        subgraph "Core Domain Engines"
+            Parser["Terraform & JSON State Parser"]
+            PolicyEngine["Governance & CIS Scoring Rules"]
+            DriftEngine["Drift & Diff Simulation Engine"]
+            RemediationEngine["Remediation Code Generator"]
         end
-        
-        DB[(SQLite - Local Persistence)]
+
+        Storage["SQLite Storage Driver (modernc.org/sqlite)"]
     end
 
-    Input[".tfstate / .json"] --> Parser
-    Parser --> API
-    Policy --> API
-    Autom --> API
-    API <--> UI
-    API <--> PB
-    API --- DB
+    Input[".tfstate / JSON Snapshot"] --> Parser
+    UI --> EB --> API_Client
+    API_Client <--> Server
+    Server --> Parser
+    Server --> PolicyEngine
+    Server --> DriftEngine
+    Server --> RemediationEngine
+    Server <--> Storage
 ```
 
 ---
 
-## 🚀 Getting Started
+## ✨ Features Breakdown
+
+| Module | Features & Capabilities |
+| :--- | :--- |
+| 🔍 **Topology Canvas** | Provider grouping (AWS/GCP/Azure), radial layouts, zoom/pan controls, draft edge previews, blast-radius highlights, SVG/PNG export. |
+| 📦 **Searchable Inventory** | Multi-attribute text filtering, provider badges, environment tagging, ownership tracking, cost sorting. |
+| 🛡️ **Governance & Scorecard** | Automated CIS compliance, Well-Architected & FinOps category scores, risk severity findings. |
+| 📊 **Observability Correlation** | Integrated telemetry signals (CPU, error rate, throughput, monthly cost), alarm status, incident logs, SLO burn rates. |
+| 🔄 **Drift Detection** | Diff tracking between state snapshots and desired topology with simulated `terraform plan` execution snippets. |
+| ⚡ **Automation Toolkit** | Drag-and-drop pipeline builder, dry-run remediation Snippets (Terraform, CLI, GitHub Actions, GitLab CI), approval lifecycle tracking. |
+
+---
+
+## 🚀 Quick Start Guide
 
 ### Prerequisites
-- **Go** 1.25+
-- **Node.js** & **npm**
-- *No cloud credentials or external databases required.*
+* **Go** 1.25+
+* **Node.js** (v18+) & **npm**
 
-### 1. Build the Frontend
-Vite outputs the build directly to `backend/dist`, which is then embedded into the Go binary.
+### 1. Build Frontend Assets
 ```powershell
 cd web
 npm install
@@ -81,22 +101,21 @@ npm run build
 cd ..
 ```
 
-### 2. Run the Backend
+### 2. Run Go Backend Server
 ```powershell
 cd backend
 go run .
 ```
-> **Access the dashboard:** [http://localhost:8080](http://localhost:8080)
+> Access interface in browser at: `http://localhost:8080`
 
-### 3. Run with Custom Data
-To load a specific state file or mock snapshot:
+### 3. Load Custom State or Snapshot File
 ```powershell
 cd backend
 $env:INFRA_STATE_FILE = "..\examples\mock-multicloud.json"
 go run .
 ```
 
-### 4. Build Single Executable
+### 4. Build Standalone Production Executable
 ```powershell
 cd web && npm run build && cd ..
 cd backend
@@ -105,84 +124,33 @@ go build -buildvcs=false -o infrasight.exe .
 
 ---
 
-## ⚙️ Configuration
+## 🔌 API Reference Summary
 
-Control InfraSight behavior using environment variables:
-
-| Variable | Description | Default |
+| Endpoint | Method | Description |
 | :--- | :--- | :--- |
-| `PORT` | HTTP server port | `8080` |
-| `INFRA_STATE_FILE` | Path to Terraform `.tfstate` or JSON snapshot | `None` |
-| `INFRASIGHT_DB` | Path to the SQLite persistence file | `backend/infrasight.db` |
-| `GOCACHE` | Custom Go cache path (useful for restricted environments) | `Standard Go Cache` |
+| `/api/health` | `GET` | System health check and API version info. |
+| `/api/snapshot` | `GET` | Current normalized infrastructure topology & findings. |
+| `/api/export` | `GET` | Export full normalized snapshot as JSON download. |
+| `/api/validate` | `POST` | Validate custom snapshot JSON payload. |
+| `/api/pricing` | `GET` | Retrieve local cloud pricing dictionary. |
+| `/api/policies` | `GET` / `POST` | List active governance rules or register custom policies. |
+| `/api/score` | `GET` | Calculate current governance category scorecard. |
+| `/api/report.md` | `GET` | Download stakeholder Markdown governance report. |
+| `/api/actions` | `GET` / `POST` | List or register remediation automation actions. |
+| `/api/actions/:id/state` | `PATCH` | Transition action lifecycle state (`suggested` → `approved` → `queued` → `executed`). |
+| `/api/plans` | `GET` / `POST` | Retrieve or save pipeline builder plans. |
+| `/api/runbooks` | `GET` / `POST` | Query or add remediation runbook playbooks. |
 
 ---
 
-## 🔌 API Reference
+## 🛣️ Future Roadmap & Recommended Enhancements
 
-### Core & Metadata
-- `GET /api/health` - System health status.
-- `GET /api/snapshot` - Current infrastructure topology.
-- `GET /api/export` - Export state as JSON.
-- `POST /api/validate` - Validate a local snapshot.
-
-### Governance & Cost
-- `GET /api/pricing` - Local pricing dictionary data.
-- `GET /api/policies` - Active governance rules.
-- `GET /api/score` - Global governance scorecard.
-- `GET /api/report.md` - Generate a Markdown governance report.
-
-### Automation
-- `GET /api/actions` - List all remediation actions.
-- `PATCH /api/actions/:id/state` - Transition action state (e.g., to `approved`).
-- `GET /api/plans` - List pipeline plans.
-- `POST /api/runbooks` - Create custom remediation runbooks.
+- [ ] **OPA / Rego Policy Integration:** Support native Open Policy Agent (.rego) policy evaluation for advanced custom enterprise compliance rules.
+- [ ] **Real-time HCL Parser:** Native HCL file parsing directly from local `.tf` directories (in addition to `.tfstate`).
+- [ ] **Mermaid & D2 Export:** Generate native Mermaid.js and D2 diagram syntax from topology selections.
+- [ ] **TypeScript Component Migration:** Complete transition of remaining `.jsx` components in `web/src/components` and `web/src/views` to fully typed `.tsx` modules.
 
 ---
 
-## 🔄 DevOps Workflow
-
-1.  **Import:** Load your local `.tfstate` or mock JSON file.
-2.  **Analyze:** Review the topology and identify cost spikes or security risks.
-3.  **Inspect:** Use the Governance tab to find resources with missing owners or public exposure.
-4.  **Remediate:** Select a finding, review the generated Terraform or CLI snippet, and mark it as `Approved`.
-5.  **Plan:** Build a pipeline sequence for the approved changes.
-6.  **Export:** Download the updated plan or a full Markdown report for stakeholders.
-
----
-
-## 🛠️ Development & Troubleshooting
-
-### Development Commands
-- **Frontend Linting:** `cd web && npm run lint`
-- **Backend Testing:** `cd backend && go test ./...`
-
-### Troubleshooting Common Issues
-
-**VCS Stamping Error:**
-If `go build` fails due to git info, use:
-```bash
-go build -buildvcs=false -o infrasight.exe .
-```
-
-**Permission Issues (Windows):**
-If Go cannot write to the default cache, set a local cache:
-```powershell
-$env:GOCACHE = (Join-Path (Get-Location) ".gocache")
-```
-
-**Stale UI:**
-If the dashboard doesn't reflect changes, ensure you've rebuilt the frontend assets:
-```bash
-cd web && npm run build
-```
-
----
-
-## 📝 Notes
-- **Local-First:** All data remains on your machine. InfraSight does **not** communicate with AWS, Azure, or GCP APIs.
-- **Dry-Run Scaffolds:** Automation snippets are for review and should be verified before manual execution in production environments.
-- **Storage:** SQLite is used exclusively for persisting local plans and action states.
-
----
-*Developed as a local-first alternative for cloud infrastructure governance.*
+## 📝 License
+Distributed under the **MIT License**. See `LICENSE` for details.

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { TopologyCanvas } from '../components/TopologyCanvas'
 import { PanelHeader, Tooltip } from '../components/ui'
+import { api } from '../services/api'
 
 export function Topology({
   edgeLabel,
@@ -58,11 +59,7 @@ export function Topology({
   }
 
   function saveLayout() {
-    fetch('/api/topology/layout/default', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: 'default', snapshot: 'local', positions }),
-    }).catch(() => null)
+    api.saveTopologyLayout('default', { id: 'default', snapshot: 'local', positions }).catch(() => null)
   }
 
   function panCanvas(event) {

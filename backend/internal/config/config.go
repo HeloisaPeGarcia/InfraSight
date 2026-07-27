@@ -11,9 +11,13 @@ type Config struct {
 }
 
 func Load() Config {
+	db := getenv("INFRASIGHT_DB", "")
+	if db == "" {
+		db = getenv("DB_PATH", "infrasight.db")
+	}
 	return Config{
 		Port: getenv("PORT", "8080"),
-		DB:   getenv("INFRASIGHT_DB", "infrasight.db"),
+		DB:   db,
 	}
 }
 
